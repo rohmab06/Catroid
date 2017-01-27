@@ -64,11 +64,27 @@ public class NoteView extends ImageView implements View.OnClickListener {
 		setImageDrawable(noteDrawable);
 	}
 
-	@Override
-	public void onClick(View v) {
+	public void setNoteActive(boolean active, boolean updateData) {
+		if (toggled != active) {
+			toggled = active;
+			showNote();
+			if (updateData) {
+				updateGridRow();
+			}
+		}
+	}
+
+	public void toggleNote(boolean updateData) {
 		toggled = !toggled;
 		showNote();
-		updateGridRow();
+		if (updateData) {
+			updateGridRow();
+		}
+	}
+
+	@Override
+	public void onClick(View v) {
+		toggleNote(true);
 	}
 
 	private void updateGridRow() {

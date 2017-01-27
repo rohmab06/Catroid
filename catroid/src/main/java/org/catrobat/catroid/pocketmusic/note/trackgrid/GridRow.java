@@ -89,4 +89,8 @@ public class GridRow {
 		}
 		return true;
 	}
+
+	public List<GridRowPosition> gridRowsForTact(int tactPosition) {
+		return gridRowPositions.get(tactPosition);
+	}
 }

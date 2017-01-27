@@ -24,6 +24,7 @@ package org.catrobat.catroid.pocketmusic.note.trackgrid;
 
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.Log;
 import android.util.SparseArray;
 
 import org.catrobat.catroid.pocketmusic.mididriver.MidiDriver;
@@ -104,31 +105,48 @@ public class TrackGrid {
 		return null;
 	}
 
-	public void updateGridRowPosition(NoteName noteName, int columnIndex, NoteLength noteLength, boolean toggled) {
+	public void updateGridRowPosition(NoteName noteName, int columnIndex, NoteLength noteLength, int tactIndex,
+			boolean toggled) {
 		GridRow gridRow = getGridRowForNoteName(noteName);
 		if (null == gridRow) {
-			List<GridRowPosition> gridRowPositions = new ArrayList<>();
-			SparseArray<List<GridRowPosition>> array = new SparseArray<>();
-			array.append(0, gridRowPositions);
-			gridRow = new GridRow(noteName, array);
-			gridRows.add(gridRow);
+			gridRow = createNewGridRow(noteName);
 		}
-		List<GridRowPosition> firstGridRowPositions = gridRow.getGridRowPositions().get(0);
-		int indexInList = GridRowPosition.getGridRowPositionIndexInList(firstGridRowPositions, columnIndex);
+		if (gridRow.getGridRowPositions().indexOfKey(tactIndex) < 0) {
+			appendNoteListAtPosition(gridRow.getGridRowPositions(), tactIndex);
+		}
+		List<GridRowPosition> currentGridRowPositions = gridRow.getGridRowPositions().get(tactIndex);
+		int indexInList = GridRowPosition.getGridRowPositionIndexInList(currentGridRowPositions, columnIndex);
 		if (toggled) {
 			if (indexInList == -1) {
-				firstGridRowPositions.add(new GridRowPosition(columnIndex, noteLength));
+				Log.d("TrackGrid", String.format("Added GridRowPosition with name %s on Tact %d with columnIndex %d "
+						+ "and noteLength %s. ", noteName.name(), tactIndex, columnIndex, noteLength.toString()));
+				currentGridRowPositions.add(new GridRowPosition(columnIndex, noteLength));
 				long playLength = NoteLength.QUARTER.toMilliseconds(Project.DEFAULT_BEATS_PER_MINUTE);
 				handler.post(new MidiRunnable(MidiSignals.NOTE_ON, noteName, playLength, handler, new MidiDriver()));
 			}
 		} else {
 			if (indexInList >= 0) {
-				firstGridRowPositions.remove(indexInList);
-				if (firstGridRowPositions.isEmpty()) {
-					gridRows.remove(gridRow);
+				currentGridRowPositions.remove(indexInList);
+				Log.d("TrackGrid", String.format("Removed GridRowPosition with name %s on Tact %d with columnIndex %d "
+						+ "and noteLength %s.", noteName.name(), tactIndex, columnIndex,
+						noteLength.toString()));
+				if (currentGridRowPositions.isEmpty()) {
+					gridRow.getGridRowPositions().remove(tactIndex);
 				}
 			}
 		}
+	}
+
+	private void appendNoteListAtPosition(SparseArray<List<GridRowPosition>> array, int tactIndex) {
+		List<GridRowPosition> gridRowPositions = new ArrayList<>(beat.getTopNumber());
+		array.append(tactIndex, gridRowPositions);
+	}
+
+	private GridRow createNewGridRow(NoteName noteName) {
+		SparseArray<List<GridRowPosition>> array = new SparseArray<>();
+		GridRow gridRow = new GridRow(noteName, array);
+		gridRows.add(gridRow);
+		return gridRow;
 	}
 
 	public void startPlayback() {
@@ -137,12 +155,13 @@ public class TrackGrid {
 		long currentTime = SystemClock.uptimeMillis();
 		for (GridRow row : gridRows) {
 			for (int i = 0; i < row.getGridRowPositions().size(); i++) {
-				List<GridRowPosition> gridRowPositions = row.getGridRowPositions().get(row.getGridRowPositions()
-						.keyAt(i));
+				int tactIndex = row.getGridRowPositions().keyAt(i);
+				List<GridRowPosition> gridRowPositions = row.gridRowsForTact(tactIndex);
 				for (GridRowPosition position : gridRowPositions) {
 					MidiRunnable runnable = new MidiRunnable(MidiSignals.NOTE_ON, row.getNoteName(), playLength - 10,
 							handler, midiDriver);
-					handler.postAtTime(runnable, currentTime + playLength * position.getColumnStartIndex() + 10);
+					handler.postAtTime(runnable, currentTime + playLength * (position.getColumnStartIndex() + beat
+							.getTopNumber() * tactIndex) + 10);
 					playRunnables.add(runnable);
 				}
 			}
@@ -155,5 +174,19 @@ public class TrackGrid {
 			handler.post(new MidiRunnable(MidiSignals.NOTE_OFF, r.getNoteName(), 0, handler, midiDriver));
 		}
 		playRunnables.clear();
+	}
+
+	public int getTactCount() {
+		int tactcount = 0;
+		for (GridRow gridRow : gridRows) {
+			SparseArray<List<GridRowPosition>> gridRowPositions = gridRow.getGridRowPositions();
+			for (int i = 0; i < gridRowPositions.size(); ++i) {
+				int key = gridRowPositions.keyAt(i);
+				if (key > tactcount) {
+					tactcount = key;
+				}
+			}
+		}
+		return tactcount;
 	}
 }
