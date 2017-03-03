@@ -102,5 +102,9 @@
     <color name="turquoise_play_line">#FF008b96</color>
     <color name="opaque_turquoise_play_line">#FF80c5ca</color>
     <color name="opaque_turquoise_play_line_dark">#FF5EA3A8</color>
+    <color name="pocketmusic_white_piano_key">#FAFAFA</color>
+    <color name="pocketmusic_white_piano_key_dark">#BDBDBD</color>
+    <color name="pocketmusic_black_piano_key">#EEEEEE</color>
+    <color name="pocketmusic_black_piano_key_dark">#757575</color>
 
 </resources>
