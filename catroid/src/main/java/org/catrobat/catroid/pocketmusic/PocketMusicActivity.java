@@ -26,6 +26,8 @@ package org.catrobat.catroid.pocketmusic;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.ViewGroup;
 
 import org.catrobat.catroid.ProjectManager;
@@ -41,9 +43,11 @@ import org.catrobat.catroid.pocketmusic.note.midi.MidiException;
 import org.catrobat.catroid.pocketmusic.note.midi.MidiToProjectConverter;
 import org.catrobat.catroid.pocketmusic.note.midi.ProjectToMidiConverter;
 import org.catrobat.catroid.pocketmusic.note.trackgrid.TrackGridToTrackConverter;
+import org.catrobat.catroid.pocketmusic.ui.ChangeBPMDialogFragment;
 import org.catrobat.catroid.pocketmusic.ui.TactScrollRecyclerView;
 import org.catrobat.catroid.ui.BaseActivity;
 import org.catrobat.catroid.ui.recyclerview.controller.SoundController;
+import org.catrobat.catroid.ui.recyclerview.dialog.NewProjectDialogFragment;
 
 import java.io.File;
 import java.io.IOException;
@@ -133,6 +137,28 @@ public class PocketMusicActivity extends BaseActivity {
 		project.setFile(new File(MIDI_FOLDER, "MUS-" + Math.abs(new Random().nextInt()) + ".midi"));
 
 		return project;
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.menu_pocketmusic, menu);
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.menu_change_bpm:
+				this.onChangeBPMMenuItemSelected();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+
+	}
+
+	private void onChangeBPMMenuItemSelected() {
+		new ChangeBPMDialogFragment().show(getFragmentManager(), ChangeBPMDialogFragment.TAG);
 	}
 
 	@Override

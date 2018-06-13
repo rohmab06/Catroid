@@ -930,6 +930,8 @@
     <!-- Music activity -->
     <string name="pocket_music_default_project_name">Untitled Song</string>
     <string name="pocket_music_default_track_name">Track 1</string>
+    <string name="pocket_music_change_bpm">Change BPM</string>
+    <string name="pocket_music_bpm">Beats per minute</string>
     <!--  -->
 
 

@@ -160,4 +160,8 @@ public class Project implements Serializable {
 	public String toString() {
 		return "[Project] name=" + name + " beatsPerMinute=" + beatsPerMinute + " trackCount=" + size();
 	}
+
+	public void setBeatsPerMinute(int beatsPerMinute) {
+		this.beatsPerMinute = beatsPerMinute;
+	}
 }
